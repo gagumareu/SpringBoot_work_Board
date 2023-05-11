@@ -48,8 +48,41 @@
                 <button class="btn btn-info" type="button">list</button>
             </a>
 
+        <div class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div> <!-- modal-header -->
+
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <input class="form-control" type="text" name="replyText" placeholder="reply text...">
+                            </div>
+                            <div>
+                                <input class="form-control" type="text" name="replyer" placeholder="replyer...">
+                            </div>
+                            <input type="hidden" name="rno">
+                        </div>
+                    </div> <!-- modal-body -->
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger replyRemove">Remove</button>
+                        <button type="button" class="btn btn-warning replyModify">Modify</button>
+                        <button type="button" class="btn btn-primary replySave">Save</button>
+                        <button type="button" class="btn btn-outline-secondary replyClose" data-dismiss="modal">Close</button>
+                    </div>  <!-- modal-footer -->
+                </div>
+            </div> <!-- modal-dialog -->
+        </div> <!-- modal -->
+
         <div>
             <div class="mt-4">
+                <h5><span class="badge badge-info addReply">Add Reply</span></h5>
                 <h5><span class="badge badge-secondary replyCount">Reply Count [[${dto.replyCount}]]</span></h5>
             </div>
             <div class="list-group replyList">
@@ -57,21 +90,101 @@
             </div>
         </div>
 
+
+
         <script th:inline="javascript">
             $(document).ready(function (){
 
                 var bno = [[${dto.bno}]];
 
+                // 댓글이 추가될 영역
                 var listGroup = $(".replyList");
 
-                $(".replyCount").click(function (){
+                // 날짜 처리를 위한 함수
+                function formatTime(str){
+
+                    var date = new Date(str);
+
+                    return date.getFullYear() + '/' +
+                        (date.getMonth() + 1) + '/' +
+                        date.getDate() + ' ' +
+                        date.getHours() + ':' +
+                        date.getMinutes();
+                }
+
+                // 특정한 게시글의 댓글을 처리하는 함수
+                function loadJSONData(){
 
                     $.getJSON('/replies/board/' + bno, function (arr){
 
                         console.info(arr);
 
-                    })
+                        var str = "";
+
+                        $('.replyCount').html("Reply Count " + arr.length);
+
+                        $.each(arr, function (idx, reply){
+                            console.info(reply);
+                            str += ' <div class="card-body" data-rno="'+reply.rno+'"><b>'+reply.rno+'</b>';
+                            str += ' <h5 class="card-title">'+reply.title+'</h5>';
+                            str += ' <h6 class="card-subtitle mb-2 text-muted">'+reply.replyer+'</h6>';
+                            str += ' <p class="card-text">'+formatTime(reply.regDate)+'</p>';
+                            str += ' </div>';
+                        })
+                        listGroup.html(str);
+                    });
+                }
+
+                $(".replyCount").click(function (){
+
+                    loadJSONData();
+
+                    // $.getJSON('/replies/board/' + bno, function (arr){
+                    //     console.info(arr);
+                    // })
                 })
+
+                // 모달창
+                var modal = $(".modal");
+
+                $(".addReply").click(function (){
+                   modal.modal('show');
+
+                   // 댓글 입력하는 부분 초기화 시키기
+                    $('input[name="replyText"]').val('');
+                    $('input[name="replyer"]').val('');
+
+                    $(".modal-footer .btn").hide();
+                    $(".replySave, .replyClose").show();
+                });
+
+                $(".replySave").click(function (){
+
+                    var reply = {
+                        bno: bno,
+                        text: $('input[name="replyText"]').val(),
+                        replyer: $('input[name="replyer"]').val()
+                    }
+                    console.info(reply);
+
+                    $.ajax({
+                       url: '/replies/',
+                       method: 'POST',
+                       data: JSON.stringify(reply),
+                       contentType: 'application/json; charset=utf-8',
+                       dataType: 'json',
+                       success: function (data){
+                           console.info(data);
+
+                           var newRno = parseInt(data);
+
+                           alert(newRno + "번 댓글이 등록되었습니다.");
+                           modal.modal('hide');
+                           loadJSONData();
+                       }
+                    });
+                })
+
             });
         </script>
 
