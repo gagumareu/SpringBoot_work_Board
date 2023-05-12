@@ -43,7 +43,7 @@ public class BoardRepositoryTests {
     @Test
     public void testRead1(){
 
-        Optional<Board> result = boardRepository.findById(100L);
+        Optional<Board> result = boardRepository.findById(194L);
 
         Board board = result.get();
 
@@ -64,7 +64,7 @@ public class BoardRepositoryTests {
     @Test
     public void testGetBoardWithReply(){
 
-        List<Object[]> result = boardRepository.getBoardWithReply(100L);
+        List<Object[]> result = boardRepository.getBoardWithReply(194L);
 
         for (Object[] arr : result){
             System.out.println(Arrays.toString(arr));
@@ -89,7 +89,7 @@ public class BoardRepositoryTests {
     @Test
     public void testRead3(){
 
-        Object result = boardRepository.getBoardByBno(100L);
+        Object result = boardRepository.getBoardByBno(194L);
 
         Object[] arr = (Object[]) result;
 
